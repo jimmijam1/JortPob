@@ -130,7 +130,8 @@ namespace JortPob
         {
             if (Const.DEBUG_SKIP_SOUND) { return; } // worlds largest time save
 
-            SamWorker.Go(samQueue); // actually generate tts and convert wems
+            SamWorker samWorker = new SamWorker(samQueue);
+            samWorker.Go(); // actually generate tts and convert wems
 
             Lort.Log($"Preprocessing {banks.Count()} BNKs...", Lort.Type.Main);
             Lort.NewTask("Preprocessing BNKs", banks.Count());

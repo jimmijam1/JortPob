@@ -1,18 +1,20 @@
 ﻿using JortPob.Common;
-using SoulsFormats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using static JortPob.FactionInfo;
+using System.Reactive;
 
 namespace JortPob.Worker
 {
-    public class SamWorker : Worker
+    // To be reworked with SAM alt generation rework
+    public class SamWorker : IWorker<Unit>
     {
         private readonly List<SoundManager.SAMData> datas;
+
+        public SamWorker(List<SoundManager.SAMData> datas)
+        {
+            this.datas = datas;
+        }
         private readonly int start;
         private readonly int end;
 
@@ -21,27 +23,19 @@ namespace JortPob.Worker
             this.datas = datas;
             this.start = start;
             this.end = end;
-
-            _thread = new Thread(Run);
-            _thread.Start();
         }
 
         private void Run()
         {
-            ExitCode = 1;
-
             for(int i = start;i<Math.Min(datas.Count(), end);i++)
             {
                 SoundManager.SAMData dat = datas[i];
                 SAM.GenerateAlt(dat.dialog, dat.info, dat.line, dat.hashName, dat.npc);
                 Lort.TaskIterate(); // Progress bar update
             }
-
-            IsDone = true;
-            ExitCode = 0;
         }
 
-        public static void Go(List<SoundManager.SAMData> datas)
+        public Unit Go()
         {
             Lort.Log($"Generating {datas.Count()} WEMs...", Lort.Type.Main);
             Lort.NewTask("Writing WEMs", datas.Count);
@@ -57,6 +51,8 @@ namespace JortPob.Worker
                     Lort.TaskIterate();
                     return;
                 });
+
+            return Unit.Default;
         }
     }
 }

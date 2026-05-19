@@ -36,7 +36,7 @@ namespace JortPob
         public List<Cell> exterior, interior;
         public List<Papyrus> scripts;
 
-        public ESM(ScriptManager scriptManager)
+            public ESM(ScriptManager scriptManager)
         {
             // Ensure the cache path exists
             Directory.CreateDirectory(Const.CACHE_PATH);
@@ -97,11 +97,10 @@ namespace JortPob
             foreach (string name in Enum.GetNames(typeof(Type)))
             {
                 Enum.TryParse(name, out Type type);
-                if (type == Type.Dialogue || type == Type.DialogueInfo) { continue; } // special records, need to be handled specially
                 recordsByType.Add(type, new Dictionary<string, JsonNode>());
                 unidentifiedRecordsByType.Add(type, []);
             }
-
+            
             foreach (var record in json)
             {
                 if (record?["type"] == null)
@@ -225,9 +224,7 @@ namespace JortPob
             {
                 leveled.Add(new(jsonNode));
             }
-
-            /* Multi threading to speed this up... */
-            (exterior, interior) = CellWorker.Go(this);
+            
             landscapesByCoordinate = new();
 
             /* Process papyrus scripts */
@@ -261,7 +258,14 @@ namespace JortPob
                 sounds.Add(sound);
             }
         }
-
+        
+        public void BuildCells()
+        {
+            Lort.Log("BUILDING CELLS", Lort.Type.Debug);
+            CellWorker worker = new CellWorker(this);
+            (exterior, interior) = worker.Go();
+        }
+        
         /* List of types that we should search for references */
         public readonly Type[] VALID_CONTENT_TYPES = {
             Type.Static, Type.Container, Type.Light, Type.Sound, Type.Skill, Type.Region, Type.Door, Type.MiscItem, Type.Weapon,  Type.Creature, Type.Bodypart, Type.Npc,
